@@ -21,7 +21,10 @@
       fetch(`https://api.chunisupport.net/v1/users/${username}`, { headers }),
       fetch(`https://api.chunisupport.net/v1/users/${username}/rating`, { headers }),
     ]);
-    if (!profileRes.ok || !ratingRes.ok) throw new Error("通信エラー");
+
+    if (!profileRes.ok || !ratingRes.ok) {
+      throw new Error("通信エラー");
+    }
 
     const profileData = await profileRes.json();
     const ratingData = await ratingRes.json();
@@ -38,21 +41,68 @@
 
     const result = {
       "プロフィール": {
-        "プレイヤーネーム": profileData.name || profileData.username || username,
-        "レーティング": (profileData.rating || ratingData.rating || 0).toFixed(2),
+        "プレイヤーネーム":
+          profileData.name ||
+          profileData.username ||
+          username,
+
+        "レーティング":
+          (profileData.rating || ratingData.rating || 0).toFixed(2),
       },
-      "RATING_RAW": profileData.rating_raw || ratingData.rating_raw || ratingData.rating || 0,
-      "ベスト枠": (ratingData.best || ratingData.best_records || []).map(toSong),
-      "新曲枠": (ratingData.recent || ratingData.new_records || ratingData.new || []).map(toSong),
-      "候補枠(ベスト)": (ratingData.candidate_best || ratingData.candidates_best || []).map(toSong),
-      "候補枠(新曲)": (ratingData.candidate_new || ratingData.candidates_new || ratingData.candidate_recent || []).map(toSong),
+
+      "RATING_RAW":
+        profileData.rating_raw ||
+        ratingData.rating_raw ||
+        ratingData.rating ||
+        0,
+
+      "ベスト枠":
+        (
+          ratingData.best ||
+          profileData.records?.best ||
+          profileData.best ||
+          profileData.best_records ||
+          []
+        ).map(toSong),
+
+      "新曲枠":
+        (
+          ratingData.new ||
+          profileData.records?.new ||
+          profileData.new ||
+          profileData.new_records ||
+          []
+        ).map(toSong),
+
+      // ★ 修正：rating API の best_candidate を最優先
+      "候補枠(ベスト)":
+        (
+          ratingData.best_candidate ||
+          profileData.records?.best_candidate ||
+          profileData.best_candidate ||
+          []
+        ).map(toSong),
+
+      // ★ 修正：rating API の new_candidate を最優先
+      "候補枠(新曲)":
+        (
+          ratingData.new_candidate ||
+          profileData.records?.new_candidate ||
+          profileData.new_candidate ||
+          []
+        ).map(toSong),
     };
 
-    const blob = new Blob([JSON.stringify(result, null, 1)], { type: "application/json" });
+    const blob = new Blob(
+      [JSON.stringify(result, null, 1)],
+      { type: "application/json" }
+    );
+
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "chunithm_player_data.json";
     a.click();
+
     alert("JSONファイルの出力が完了しました！");
   } catch (e) {
     alert("エラー:" + e.message);
