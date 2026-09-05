@@ -278,13 +278,16 @@
       <p style="text-align:center;margin:16px 0;">
         <a id="bookmarkletLink" href='javascript:(async()=>{try{const u=prompt("ユーザーネームを入力してください:");if(!u)return;const t=prompt("APIトークンを入力してください:");if(!t)return;const h={Authorization:`Bearer ${t}`};const[r1,r2]=await Promise.all([fetch(`https://api.chunisupport.net/v1/users/${u}`,{headers:h}),fetch(`https://api.chunisupport.net/v1/users/${u}/rating`,{headers:h})]);if(!r1.ok||!r2.ok)throw new Error("通信エラー");const d1=await r1.json(),d2=await r2.json(),f=r=>({title:r.title||r.song_title||"Unknown",diff:r.difficulty||r.diff||"",lv:r.level||r.lv||"",score:r.score||0,rank:r.rank||"",const:r.constant??r.const??null,rate:r.rating??r.rate??0}),res={"プロフィール":{"プレイヤーネーム":d1.name||d1.username||u,"レーティング":(d1.rating||d2.rating||0).toFixed(2)},"RATING_RAW":d1.rating_raw||d2.rating_raw||d2.rating||0,"ベスト枠":(d2.best||d2.best_records||[]).map(f),"新曲枠":(d2.recent||d2.new_records||d2.new||[]).map(f),"候補枠(ベスト)":(d2.candidate_best||d2.candidates_best||[]).map(f),"候補枠(新曲)":(d2.candidate_new||d2.candidates_new||d2.candidate_recent||[]).map(f)},a=document.createElement(&#39;a&#39;);a.href=URL.createObjectURL(new Blob([JSON.stringify(res,null,1)],{type:&#39;application/json&#39;}));a.download=&#39;chunithm_player_data.json&#39;;a.click();alert("JSONファイルの出力が完了しました！");}catch(e){alert("エラー:"+e.message);}})();'
            style="display:inline-block;padding:10px 22px;border-radius:8px;background:#e0a800;color:#fff;text-decoration:none;font-weight:700;font-size:13.5px;"
-           onclick="alert('このリンクはクリックではなく、ブックマークバーへドラッグ&amp;ドロップして登録してください。');return false;">
-          📥 CHUNITHMスコア取得
+           title="ドラッグしてブックマークバーに登録、またはクリックしてコードをコピー">
+          🔖 CHUNITHMスコア取得（ドラッグしてブックマーク登録）
         </a>
+        <br>
+        <span class="status" id="bookmarkletCopyStatus" style="display:inline-block;margin-top:8px;"></span>
       </p>
       <p class="goal-hint">
-        <strong>登録方法(ドラッグで登録する場合)</strong>: ブックマークバーを表示した状態で、上のボタンをブックマークバーへドラッグ&amp;ドロップしてください。<br>
-        <strong>登録方法(手動でコピーする場合)</strong>: <a href="bookmarklet/bookmarklet.txt" target="_blank" rel="noopener noreferrer">bookmarklet.txt</a> の中身を丸ごとコピーし、新しいブックマークを作成してURL欄に貼り付けてください。<br><br>
+        <strong>登録方法①(ドラッグでそのまま登録)</strong>: ブックマークバーを表示した状態で、上のリンクをブックマークバーへ直接ドラッグ&amp;ドロップしてください。<br>
+        <strong>登録方法②(クリックしてコピーし、手動で登録)</strong>: 上のリンクをクリックすると、ブックマークレットのコードがクリップボードにコピーされます（クリックしてもページ内では何も実行されません）。ブラウザで新しいブックマークを作成し、URL欄にコピーしたコードを貼り付けて保存してください。<br>
+        コピーがうまくいかない場合は <a href="bookmarklet/bookmarklet.txt" target="_blank" rel="noopener noreferrer">bookmarklet.txt</a> の中身を直接コピーしてもOKです。<br><br>
         <strong>使い方</strong>: 登録したブックマークをクリックすると、ユーザーネームとAPIトークンの入力を求められます。入力すると <code>chunithm_player_data.json</code> がダウンロードされるので、それを「レーティングチェッカー」タブの「スコアデータを読込」またはドラッグ&amp;ドロップで読み込んでください。<br><br>
         ソースコードは <a href="bookmarklet/fetch-score-data.js" target="_blank" rel="noopener noreferrer">bookmarklet/fetch-score-data.js</a> にあります。
       </p>
@@ -453,6 +456,10 @@ function fromChunirecExport(d){
   return { frames, allSongs, profile, rawRating: null, isChunirec:true, versionName: d['最新バージョン名'] || '' };
 }
 
+function isEmptySong(s){
+  return !s || !s.title || s.title === '---' || (!s.score && !s.rate && s.const == null);
+}
+
 function normalizeFrames(d){
   const frames = {};
   TAB_KEYS.forEach(k => frames[k] = []);
@@ -479,13 +486,14 @@ function normalizeFrames(d){
   // 配列(category付き)
   if(Array.isArray(d)){
     d.forEach(s=>{
+      if(isEmptySong(s)) return;
       const cat = TAB_KEYS.includes(s.category) ? s.category : 'ベスト枠';
       frames[cat].push(s);
     });
-    return { frames, allSongs: d.slice(), profile:{}, rawRating:null };
+    return { frames, allSongs: [].concat(...TAB_KEYS.map(k=>frames[k])), profile:{}, rawRating:null };
   }
   // 4枠オブジェクト
-  TAB_KEYS.forEach(k=>{ if(Array.isArray(d[k])) frames[k] = d[k]; });
+  TAB_KEYS.forEach(k=>{ if(Array.isArray(d[k])) frames[k] = d[k].filter(s=>!isEmptySong(s)); });
   const merged = [];
   TAB_KEYS.forEach(k=> frames[k].forEach(s=> merged.push(s)));
   return { frames, allSongs: merged, profile: d['プロフィール'] || {}, rawRating: d['RATING_RAW'] ?? null };
@@ -740,7 +748,12 @@ function render(){
       body.appendChild(tr);
     });
   });
-  if(counter === 0){ body.innerHTML = `<tr><td colspan="${COLS.length}" style="padding:36px;text-align:center;color:#b8a15c;">表示できる曲がありません</td></tr>`; }
+  if(counter === 0){
+    const msg = total === 0
+      ? `${esc(activeTab)}にはデータがありません`
+      : '判定ランクの範囲に該当する曲がありません（範囲設定を確認してください）';
+    body.innerHTML = `<tr><td colspan="${COLS.length}" style="padding:36px;text-align:center;color:#b8a15c;">${msg}</td></tr>`;
+  }
 
   body.querySelectorAll('[data-del]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -905,6 +918,28 @@ document.querySelectorAll('.page-btn').forEach(btn=>{
     if(page==='goal') renderGoals();
   });
 });
+
+// ブックマークレットリンク: クリックしても実行せず、コードをクリップボードへコピーする
+(function initBookmarkletCopy(){
+  const link = document.getElementById('bookmarkletLink');
+  const status = document.getElementById('bookmarkletCopyStatus');
+  if(!link) return;
+  link.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const code = link.getAttribute('href');
+    const showResult = (ok)=>{
+      status.textContent = ok
+        ? 'コピーしました！新しいブックマークを作成し、URL欄に貼り付けて登録してください。'
+        : 'コピーに失敗しました。bookmarklet.txt の内容を手動でコピーしてください。';
+      status.className = 'status ' + (ok ? 'ok' : 'warn');
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(()=> showResult(true)).catch(()=> showResult(false));
+    }else{
+      showResult(false);
+    }
+  });
+})();
 
 // 達成基準セレクトの切替
 document.getElementById('goalKind').addEventListener('change', (e)=>{
