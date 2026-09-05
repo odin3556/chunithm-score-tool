@@ -269,28 +269,14 @@
   </div><!-- /goalPage -->
 
   <div id="settingsPage" style="display:none;">
-    <div class="goal-create">
-      <h2 class="goal-h2">APIアカウント設定（任意）</h2>
-      <p class="goal-hint">
-        ユーザーネームとAPIトークンを保存しておくと、下の「専用ブックマークレット」でそれらを埋め込んだ自分専用のブックマークレットを作れます。実行のたびに入力しなくてよくなります。<br>
-        保存先はこのブラウザの<strong>タブを閉じるまでの間だけ有効な一時保存(sessionStorage)</strong>です。タブを閉じると自動的に消え、外部やサーバーに送信されることもありません。共有PCなど、他の人も使う環境では保存しないことをおすすめします。
-      </p>
-      <div class="goal-form">
-        <label>ユーザーネーム <input type="text" id="settingsUsername" class="inp" placeholder="username" autocomplete="off"></label>
-        <label>APIトークン
-          <input type="password" id="settingsToken" class="inp" placeholder="API token" autocomplete="off" style="width:220px;">
-          <button type="button" id="toggleTokenVisible" title="表示⇔非表示を切り替え">👁 表示</button>
-        </label>
-        <button class="primary" id="saveSettingsBtn">設定を保存</button>
-        <button type="button" id="clearSettingsBtn">保存内容を削除</button>
-      </div>
-      <p class="status" id="settingsStatus"></p>
-    </div>
+    <p class="goal-hint" style="margin:0 0 14px;">
+      スコアの取得には、ChuniSupportのAPIを呼び出すブックマークレットを使います。まずは<strong>①の共通ブックマークレット</strong>だけですぐに使い始められます。毎回ユーザーネームとトークンを入力するのが面倒な場合は、<strong>②のAPIアカウント設定</strong>で保存すると、<strong>③の専用ブックマークレット</strong>が使えるようになり入力が省略できます(任意)。
+    </p>
 
     <div class="goal-create">
-      <h2 class="goal-h2">共通ブックマークレット（毎回入力）</h2>
+      <h2 class="goal-h2">① 共通ブックマークレット（まずはこれ）</h2>
       <p class="goal-hint">
-        <a href="https://docs.chunisupport.net/" target="_blank" rel="noopener noreferrer">ChuniSupport</a> のAPIから自分のスコアデータを取得し、このツールに読み込めるJSONファイルとしてダウンロードするブックマークレットです。<br>
+        <a href="https://docs.chunisupport.net/" target="_blank" rel="noopener noreferrer">ChuniSupport</a> のAPIから自分のスコアデータを取得し、このツールに読み込めるJSONファイルとしてダウンロードするブックマークレットです。実行するたびにユーザーネームとAPIトークンの入力を求められる、追加の準備が要らない基本版です。<br>
         あらかじめ ChuniSupport でアカウント登録とAPIトークンの発行を済ませておいてください。
       </p>
       <p style="text-align:center;margin:16px 0;">
@@ -312,9 +298,27 @@
     </div>
 
     <div class="goal-create">
-      <h2 class="goal-h2">専用ブックマークレット（入力省略版）</h2>
+      <h2 class="goal-h2">② APIアカウント設定（任意・時短したい人向け）</h2>
       <p class="goal-hint">
-        上の「APIアカウント設定」でユーザーネームとAPIトークンを保存すると、それらを埋め込んだ専用のブックマークレットを作成できます。実行時の入力が不要になり、クリックするだけですぐにJSONがダウンロードされます。
+        ユーザーネームとAPIトークンを保存しておくと、下の「③ 専用ブックマークレット」でそれらを埋め込んだ自分専用のブックマークレットを作れます。実行のたびに入力しなくてよくなります。<br>
+        保存先はこのブラウザの<strong>タブを閉じるまでの間だけ有効な一時保存(sessionStorage)</strong>です。タブを閉じると自動的に消え、外部やサーバーに送信されることもありません。共有PCなど、他の人も使う環境では保存しないことをおすすめします。
+      </p>
+      <div class="goal-form">
+        <label>ユーザーネーム <input type="text" id="settingsUsername" class="inp" placeholder="username" autocomplete="off"></label>
+        <label>APIトークン
+          <input type="password" id="settingsToken" class="inp" placeholder="API token" autocomplete="off" style="width:220px;">
+          <button type="button" id="toggleTokenVisible" title="表示⇔非表示を切り替え">👁 表示</button>
+        </label>
+        <button class="primary" id="saveSettingsBtn">設定を保存</button>
+        <button type="button" id="clearSettingsBtn">保存内容を削除</button>
+      </div>
+      <p class="status" id="settingsStatus"></p>
+    </div>
+
+    <div class="goal-create">
+      <h2 class="goal-h2">③ 専用ブックマークレット（入力省略版）</h2>
+      <p class="goal-hint">
+        上の「② APIアカウント設定」でユーザーネームとAPIトークンを保存すると、それらを埋め込んだ専用のブックマークレットを作成できます。実行時の入力が不要になり、クリックするだけですぐにJSONがダウンロードされます。
       </p>
       <p style="text-align:center;margin:16px 0;">
         <button type="button" id="personalBookmarkletBtn" class="primary" style="padding:10px 22px;border-radius:8px;font-size:13.5px;">🔒 専用ブックマークレットをコピー</button>
@@ -332,7 +336,7 @@
       </p>
       <ul class="goal-hint" style="margin:0 0 12px;padding-left:20px;line-height:1.8;">
         <li><strong>非営利目的に限る</strong>: APIおよび取得データを使った有料機能・広告掲載・データの販売や有償再配布などには使用できません。</li>
-        <li><strong>APIトークンを公開・共有しない</strong>: トークンは発行を受けた本人が管理するものです。「APIアカウント設定」で保存を選ばない限り、入力したトークンはその場でAPI呼び出しに使われるだけでどこにも保存されません。保存を選んだ場合も、このブラウザのタブを閉じるまでの一時保存(sessionStorage)にとどまり、外部やサーバーには送信されません。</li>
+        <li><strong>APIトークンを公開・共有しない</strong>: トークンは発行を受けた本人が管理するものです。「② APIアカウント設定」で保存を選ばない限り、入力したトークンはその場でAPI呼び出しに使われるだけでどこにも保存されません。保存を選んだ場合も、このブラウザのタブを閉じるまでの一時保存(sessionStorage)にとどまり、外部やサーバーには送信されません。</li>
         <li><strong>制限の回避禁止</strong>: レート制限・認証・公開設定など、APIドキュメントで定められた技術的制限を回避しないでください。</li>
         <li><strong>問い合わせ先</strong>: 本ツールやAPIに関する問い合わせは、株式会社セガ等の公式関係者ではなく、ChuniSupportの問い合わせ窓口へ行ってください。</li>
       </ul>
@@ -1079,7 +1083,7 @@ const SETTINGS_TOKEN_KEY = 'chunithm_settings_token';
       token = sessionStorage.getItem(SETTINGS_TOKEN_KEY) || '';
     }catch(e){}
     if(!username || !token){
-      status.textContent = '先に上の「APIアカウント設定」でユーザーネームとAPIトークンを保存してください。';
+      status.textContent = '先に上の「② APIアカウント設定」でユーザーネームとAPIトークンを保存してください。';
       status.className = 'status warn';
       return;
     }
