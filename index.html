@@ -270,7 +270,25 @@
 
   <div id="settingsPage" style="display:none;">
     <div class="goal-create">
-      <h2 class="goal-h2">スコア取得用ブックマークレット</h2>
+      <h2 class="goal-h2">APIアカウント設定（任意）</h2>
+      <p class="goal-hint">
+        ユーザーネームとAPIトークンを保存しておくと、下の「専用ブックマークレット」でそれらを埋め込んだ自分専用のブックマークレットを作れます。実行のたびに入力しなくてよくなります。<br>
+        保存先はこのブラウザの<strong>タブを閉じるまでの間だけ有効な一時保存(sessionStorage)</strong>です。タブを閉じると自動的に消え、外部やサーバーに送信されることもありません。共有PCなど、他の人も使う環境では保存しないことをおすすめします。
+      </p>
+      <div class="goal-form">
+        <label>ユーザーネーム <input type="text" id="settingsUsername" class="inp" placeholder="username" autocomplete="off"></label>
+        <label>APIトークン
+          <input type="password" id="settingsToken" class="inp" placeholder="API token" autocomplete="off" style="width:220px;">
+          <button type="button" id="toggleTokenVisible" title="表示⇔非表示を切り替え">👁 表示</button>
+        </label>
+        <button class="primary" id="saveSettingsBtn">設定を保存</button>
+        <button type="button" id="clearSettingsBtn">保存内容を削除</button>
+      </div>
+      <p class="status" id="settingsStatus"></p>
+    </div>
+
+    <div class="goal-create">
+      <h2 class="goal-h2">共通ブックマークレット（毎回入力）</h2>
       <p class="goal-hint">
         <a href="https://docs.chunisupport.net/" target="_blank" rel="noopener noreferrer">ChuniSupport</a> のAPIから自分のスコアデータを取得し、このツールに読み込めるJSONファイルとしてダウンロードするブックマークレットです。<br>
         あらかじめ ChuniSupport でアカウント登録とAPIトークンの発行を済ませておいてください。
@@ -294,13 +312,27 @@
     </div>
 
     <div class="goal-create">
+      <h2 class="goal-h2">専用ブックマークレット（入力省略版）</h2>
+      <p class="goal-hint">
+        上の「APIアカウント設定」でユーザーネームとAPIトークンを保存すると、それらを埋め込んだ専用のブックマークレットを作成できます。実行時の入力が不要になり、クリックするだけですぐにJSONがダウンロードされます。
+      </p>
+      <p style="text-align:center;margin:16px 0;">
+        <button type="button" id="personalBookmarkletBtn" class="primary" style="padding:10px 22px;border-radius:8px;font-size:13.5px;">🔒 専用ブックマークレットをコピー</button>
+      </p>
+      <p class="status" id="personalBookmarkletStatus"></p>
+      <p class="goal-hint" style="color:#c23b3b;margin:0;">
+        ⚠️ 専用ブックマークレットにはAPIトークンがそのまま平文で含まれます。他人と共有したり、公開の場(SNS・チャット・スクリーンショット等)に貼り付けたりしないでください。ブラウザのブックマーク同期機能を使っている場合は、同期先の端末の管理にも注意してください。
+      </p>
+    </div>
+
+    <div class="goal-create">
       <h2 class="goal-h2">利用にあたっての注意</h2>
       <p class="goal-hint">
         このツールおよびブックマークレットは <a href="https://docs.chunisupport.net/legal/terms/" target="_blank" rel="noopener noreferrer">ChuniSupport利用規約</a> の適用を受けます。特に以下を守ってください。
       </p>
       <ul class="goal-hint" style="margin:0 0 12px;padding-left:20px;line-height:1.8;">
         <li><strong>非営利目的に限る</strong>: APIおよび取得データを使った有料機能・広告掲載・データの販売や有償再配布などには使用できません。</li>
-        <li><strong>APIトークンを公開・共有しない</strong>: トークンは発行を受けた本人が管理するものです。入力したトークンはその場でAPI呼び出しに使われるだけで、どこにも保存されません。</li>
+        <li><strong>APIトークンを公開・共有しない</strong>: トークンは発行を受けた本人が管理するものです。「APIアカウント設定」で保存を選ばない限り、入力したトークンはその場でAPI呼び出しに使われるだけでどこにも保存されません。保存を選んだ場合も、このブラウザのタブを閉じるまでの一時保存(sessionStorage)にとどまり、外部やサーバーには送信されません。</li>
         <li><strong>制限の回避禁止</strong>: レート制限・認証・公開設定など、APIドキュメントで定められた技術的制限を回避しないでください。</li>
         <li><strong>問い合わせ先</strong>: 本ツールやAPIに関する問い合わせは、株式会社セガ等の公式関係者ではなく、ChuniSupportの問い合わせ窓口へ行ってください。</li>
       </ul>
@@ -410,6 +442,26 @@ let activeTab = 'ベスト枠';
 let sortCol = null;
 let sortDir = 'asc';
 const loadStatus = document.getElementById('loadStatus');
+
+// 読み込んだスコアデータをタブを閉じるまで保持する（sessionStorage）
+const SESSION_DATA_KEY = 'chunithm_session_data_v1';
+function persistSessionData(){
+  try{
+    sessionStorage.setItem(SESSION_DATA_KEY, JSON.stringify({ DATA, initialSnapshot, activeTab }));
+  }catch(e){}
+}
+function restoreSessionData(){
+  try{
+    const raw = sessionStorage.getItem(SESSION_DATA_KEY);
+    if(!raw) return false;
+    const saved = JSON.parse(raw);
+    if(!saved || !saved.DATA) return false;
+    DATA = saved.DATA;
+    initialSnapshot = saved.initialSnapshot || null;
+    activeTab = saved.activeTab || 'ベスト枠';
+    return true;
+  }catch(e){ return false; }
+}
 
 /* ============================================================
    読み込み
@@ -526,6 +578,7 @@ function loadJson(raw){
   document.getElementById('app').style.display = '';
   renderSummary();
   render();
+  persistSessionData();
 }
 
 function loadSample(){
@@ -576,6 +629,7 @@ document.getElementById('resetInitial').addEventListener('click', ()=>{
   loadStatus.textContent = '読み込み直後の初期状態に戻しました。';
   loadStatus.className = 'status ok';
   renderSummary(); render();
+  persistSessionData();
 });
 
 /* ============================================================
@@ -682,7 +736,7 @@ function render(){
     return `<div class="tab ${k===activeTab?'active':''}" data-tab="${esc(k)}">${esc(k)} <span class="count">(${n})</span></div>`;
   }).join('');
   document.querySelectorAll('#tabs .tab').forEach(el=>{
-    el.addEventListener('click', ()=>{ activeTab = el.dataset.tab; sortCol=null; sortDir='asc'; render(); });
+    el.addEventListener('click', ()=>{ activeTab = el.dataset.tab; sortCol=null; sortDir='asc'; render(); persistSessionData(); });
   });
 
   // ヘッダ
@@ -765,6 +819,7 @@ function render(){
       loadStatus.textContent = `「${removed.title}」を${activeTab}から削除しました。RATINGは残りの曲で再計算しています（「初期状態にリセット」で戻せます）。`;
       loadStatus.className = 'status ok';
       renderSummary(); render();
+      persistSessionData();
     });
   });
   document.querySelectorAll('th.sortable').forEach(th=>{
@@ -931,6 +986,108 @@ document.querySelectorAll('.page-btn').forEach(btn=>{
       status.textContent = ok
         ? 'コピーしました！新しいブックマークを作成し、URL欄に貼り付けて登録してください。'
         : 'コピーに失敗しました。bookmarklet.txt の内容を手動でコピーしてください。';
+      status.className = 'status ' + (ok ? 'ok' : 'warn');
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(()=> showResult(true)).catch(()=> showResult(false));
+    }else{
+      showResult(false);
+    }
+  });
+})();
+
+/* ============================================================
+   APIアカウント設定（ユーザーネーム・トークンの一時保存）
+   タブを閉じるまでの間だけ有効な sessionStorage を使う
+   ============================================================ */
+const SETTINGS_USERNAME_KEY = 'chunithm_settings_username';
+const SETTINGS_TOKEN_KEY = 'chunithm_settings_token';
+
+(function initSettingsForm(){
+  const usernameInput = document.getElementById('settingsUsername');
+  const tokenInput = document.getElementById('settingsToken');
+  const status = document.getElementById('settingsStatus');
+  if(!usernameInput || !tokenInput) return;
+
+  try{
+    const savedUser = sessionStorage.getItem(SETTINGS_USERNAME_KEY);
+    const savedToken = sessionStorage.getItem(SETTINGS_TOKEN_KEY);
+    if(savedUser) usernameInput.value = savedUser;
+    if(savedToken) tokenInput.value = savedToken;
+  }catch(e){}
+
+  document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
+    const u = usernameInput.value.trim();
+    const t = tokenInput.value.trim();
+    if(!u || !t){
+      status.textContent = 'ユーザーネームとAPIトークンの両方を入力してください。';
+      status.className = 'status warn';
+      return;
+    }
+    try{
+      sessionStorage.setItem(SETTINGS_USERNAME_KEY, u);
+      sessionStorage.setItem(SETTINGS_TOKEN_KEY, t);
+      status.textContent = '保存しました（このブラウザタブを閉じるまで保持されます）。';
+      status.className = 'status ok';
+    }catch(e){
+      status.textContent = '保存に失敗しました。';
+      status.className = 'status warn';
+    }
+  });
+
+  document.getElementById('clearSettingsBtn').addEventListener('click', ()=>{
+    try{
+      sessionStorage.removeItem(SETTINGS_USERNAME_KEY);
+      sessionStorage.removeItem(SETTINGS_TOKEN_KEY);
+    }catch(e){}
+    usernameInput.value = '';
+    tokenInput.value = '';
+    status.textContent = '保存内容を削除しました。';
+    status.className = 'status ok';
+  });
+
+  document.getElementById('toggleTokenVisible').addEventListener('click', (e)=>{
+    const showing = tokenInput.type === 'text';
+    tokenInput.type = showing ? 'password' : 'text';
+    e.currentTarget.textContent = showing ? '👁 表示' : '🙈 隠す';
+  });
+})();
+
+// 専用ブックマークレット: 保存済みのユーザーネーム・トークンを埋め込んだコードを生成してコピー
+(function initPersonalBookmarklet(){
+  const btn = document.getElementById('personalBookmarkletBtn');
+  const status = document.getElementById('personalBookmarkletStatus');
+  if(!btn) return;
+
+  function buildPersonalCode(username, token){
+    const generic = document.getElementById('bookmarkletLink').getAttribute('href');
+    return generic
+      .replace(
+        'const u=prompt("ユーザーネームを入力してください:");if(!u)return;',
+        `const u=${JSON.stringify(username)};`
+      )
+      .replace(
+        'const t=prompt("APIトークンを入力してください:");if(!t)return;',
+        `const t=${JSON.stringify(token)};`
+      );
+  }
+
+  btn.addEventListener('click', ()=>{
+    let username = '', token = '';
+    try{
+      username = sessionStorage.getItem(SETTINGS_USERNAME_KEY) || '';
+      token = sessionStorage.getItem(SETTINGS_TOKEN_KEY) || '';
+    }catch(e){}
+    if(!username || !token){
+      status.textContent = '先に上の「APIアカウント設定」でユーザーネームとAPIトークンを保存してください。';
+      status.className = 'status warn';
+      return;
+    }
+    const code = buildPersonalCode(username, token);
+    const showResult = (ok)=>{
+      status.textContent = ok
+        ? 'コピーしました！新しいブックマークを作成し、URL欄に貼り付けて登録してください。このコードにはAPIトークンが含まれるので取り扱いに注意してください。'
+        : 'コピーに失敗しました。もう一度お試しください。';
       status.className = 'status ' + (ok ? 'ok' : 'warn');
     };
     if(navigator.clipboard && navigator.clipboard.writeText){
@@ -1144,7 +1301,19 @@ function renderGoals(){
   });
 }
 
-loadSample();
+// 起動時: このタブ内で読み込み済みのデータがあれば復元し、無ければサンプルを表示
+if(restoreSessionData()){
+  document.getElementById('rankMin').value = 'D';
+  document.getElementById('rankMax').value = '理論値';
+  document.getElementById('app').style.display = '';
+  const p = DATA.profile || {};
+  loadStatus.textContent = `前回のデータを復元しました: ${p['プレイヤーネーム'] || 'Player'}`;
+  loadStatus.className = 'status ok';
+  renderSummary();
+  render();
+}else{
+  loadSample();
+}
 </script>
 </body>
 </html>
