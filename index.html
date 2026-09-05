@@ -167,6 +167,7 @@
   <div class="page-switch">
     <div class="page-btn active" data-page="checker">レーティングチェッカー</div>
     <div class="page-btn" data-page="goal">目標</div>
+    <div class="page-btn" data-page="settings">設定</div>
   </div>
 
   <div id="checkerPage">
@@ -267,6 +268,45 @@
     </div>
   </div><!-- /goalPage -->
 
+  <div id="settingsPage" style="display:none;">
+    <div class="goal-create">
+      <h2 class="goal-h2">スコア取得用ブックマークレット</h2>
+      <p class="goal-hint">
+        <a href="https://docs.chunisupport.net/" target="_blank" rel="noopener noreferrer">ChuniSupport</a> のAPIから自分のスコアデータを取得し、このツールに読み込めるJSONファイルとしてダウンロードするブックマークレットです。<br>
+        あらかじめ ChuniSupport でアカウント登録とAPIトークンの発行を済ませておいてください。
+      </p>
+      <p style="text-align:center;margin:16px 0;">
+        <a id="bookmarkletLink" href='javascript:(async()=>{try{const u=prompt("ユーザーネームを入力してください:");if(!u)return;const t=prompt("APIトークンを入力してください:");if(!t)return;const h={Authorization:`Bearer ${t}`};const[r1,r2]=await Promise.all([fetch(`https://api.chunisupport.net/v1/users/${u}`,{headers:h}),fetch(`https://api.chunisupport.net/v1/users/${u}/rating`,{headers:h})]);if(!r1.ok||!r2.ok)throw new Error("通信エラー");const d1=await r1.json(),d2=await r2.json(),f=r=>({title:r.title||r.song_title||"Unknown",diff:r.difficulty||r.diff||"",lv:r.level||r.lv||"",score:r.score||0,rank:r.rank||"",const:r.constant??r.const??null,rate:r.rating??r.rate??0}),res={"プロフィール":{"プレイヤーネーム":d1.name||d1.username||u,"レーティング":(d1.rating||d2.rating||0).toFixed(2)},"RATING_RAW":d1.rating_raw||d2.rating_raw||d2.rating||0,"ベスト枠":(d2.best||d2.best_records||[]).map(f),"新曲枠":(d2.recent||d2.new_records||d2.new||[]).map(f),"候補枠(ベスト)":(d2.candidate_best||d2.candidates_best||[]).map(f),"候補枠(新曲)":(d2.candidate_new||d2.candidates_new||d2.candidate_recent||[]).map(f)},a=document.createElement(&#39;a&#39;);a.href=URL.createObjectURL(new Blob([JSON.stringify(res,null,1)],{type:&#39;application/json&#39;}));a.download=&#39;chunithm_player_data.json&#39;;a.click();alert("JSONファイルの出力が完了しました！");}catch(e){alert("エラー:"+e.message);}})();'
+           style="display:inline-block;padding:10px 22px;border-radius:8px;background:#e0a800;color:#fff;text-decoration:none;font-weight:700;font-size:13.5px;"
+           onclick="alert('このリンクはクリックではなく、ブックマークバーへドラッグ&amp;ドロップして登録してください。');return false;">
+          📥 CHUNITHMスコア取得
+        </a>
+      </p>
+      <p class="goal-hint">
+        <strong>登録方法(ドラッグで登録する場合)</strong>: ブックマークバーを表示した状態で、上のボタンをブックマークバーへドラッグ&amp;ドロップしてください。<br>
+        <strong>登録方法(手動でコピーする場合)</strong>: <a href="bookmarklet/bookmarklet.txt" target="_blank" rel="noopener noreferrer">bookmarklet.txt</a> の中身を丸ごとコピーし、新しいブックマークを作成してURL欄に貼り付けてください。<br><br>
+        <strong>使い方</strong>: 登録したブックマークをクリックすると、ユーザーネームとAPIトークンの入力を求められます。入力すると <code>chunithm_player_data.json</code> がダウンロードされるので、それを「レーティングチェッカー」タブの「スコアデータを読込」またはドラッグ&amp;ドロップで読み込んでください。<br><br>
+        ソースコードは <a href="bookmarklet/fetch-score-data.js" target="_blank" rel="noopener noreferrer">bookmarklet/fetch-score-data.js</a> にあります。
+      </p>
+    </div>
+
+    <div class="goal-create">
+      <h2 class="goal-h2">利用にあたっての注意</h2>
+      <p class="goal-hint">
+        このツールおよびブックマークレットは <a href="https://docs.chunisupport.net/legal/terms/" target="_blank" rel="noopener noreferrer">ChuniSupport利用規約</a> の適用を受けます。特に以下を守ってください。
+      </p>
+      <ul class="goal-hint" style="margin:0 0 12px;padding-left:20px;line-height:1.8;">
+        <li><strong>非営利目的に限る</strong>: APIおよび取得データを使った有料機能・広告掲載・データの販売や有償再配布などには使用できません。</li>
+        <li><strong>APIトークンを公開・共有しない</strong>: トークンは発行を受けた本人が管理するものです。入力したトークンはその場でAPI呼び出しに使われるだけで、どこにも保存されません。</li>
+        <li><strong>制限の回避禁止</strong>: レート制限・認証・公開設定など、APIドキュメントで定められた技術的制限を回避しないでください。</li>
+        <li><strong>問い合わせ先</strong>: 本ツールやAPIに関する問い合わせは、株式会社セガ等の公式関係者ではなく、ChuniSupportの問い合わせ窓口へ行ってください。</li>
+      </ul>
+      <p class="goal-hint" style="margin:0;">
+        サイト上のコンテンツの著作権は、原則として各コンテンツの著作権保持者に帰属します。当サイトは非公式のファンサイトであり、株式会社セガをはじめとする関係者・関係会社とは一切関係ありません。
+      </p>
+    </div>
+  </div><!-- /settingsPage -->
+
   <footer>
     ※ 判定ランク境界値: D:0 / C:500,000 / B:600,000 / BB:700,000 / BBB:800,000 / A:900,000 / AA:925,000 / AAA:950,000 / S:975,000 / S+:990,000 / SS:1,000,000 / SS+:1,005,000 / SSS:1,007,500 / SSS+:1,009,000 / 理論値:1,010,000<br>
     ※ RATING = (ベスト枠30曲のレート値合計 + 新曲枠20枠のレート値合計) ÷ 50。実データで RAW 10.0856（ベスト枠平均15.0250・新曲枠平均2.6765）と一致を確認済みです。候補枠はレートには直接算入されず、次にベスト/新曲枠へ入り得る曲の一覧です。<br>
@@ -274,7 +314,7 @@
     ※ 「レート値」はchunirecが算出した各曲のレートをそのまま表示しています。「加点」は次の判定ランクに到達したときのレート値の上昇量です（レート値 = 定数 + スコアボーナス、で算出）。<br>
     ※ 定数が赤字（末尾なし）はchunirec側で未確定・未調査の推定値です。<br>
     ※ 列見出しをクリックすると並び替えられます（評価グループの区切りは維持されます）。各行の「削除」でその曲を今の枠から外せます。データは消えないので「初期状態にリセット」で戻せます。<br>
-    ※ 画像として保存する際は、主要列（#・曲名・定数・スコア・判定ランク・次のスコア・次の判定ランク・あと）に絞って出力します。レート値・加点・評価・削除の各列は省きます。定数などが不明な場合は画像では「?」や「-」で表示され、全行がそのままの高さで入るので縦にも横にも途切れません。
+    ※ 画像として保存する際は、主要列（#・曲名・定数・スコア・判定ランク・次のスコア・次の判定ランク・差分）に絞って出力します。レート値・加点・評価・削除の各列は省きます。定数などが不明な場合は画像では「?」や「-」で表示され、全行がそのままの高さで入るので縦にも横にも途切れません。
     <p class="legal">
       サイト上のコンテンツの著作権は、原則として各コンテンツの著作権保持者に帰属します。<br>
       当サイトは非公式のファンサイトであり、株式会社セガをはじめとする関係者・関係会社とは一切関係ありません。<br>
@@ -613,7 +653,7 @@ const COLS = [
   ['判定ランク',     'ランク',  'rank'],
   ['次のスコア',     '次スコア','num'],
   ['次の判定ランク', '次ランク', 'rank'],
-  ['あと',          'あと',    'num'],
+  ['差分',          'あと',    'num'],
   ['レート値',       'レート値','num'],
   ['加点',          '加点',    'gain'],
   ['評価',          null,      'eval'],
@@ -861,6 +901,7 @@ document.querySelectorAll('.page-btn').forEach(btn=>{
     const page = btn.dataset.page;
     document.getElementById('checkerPage').style.display = (page==='checker') ? '' : 'none';
     document.getElementById('goalPage').style.display = (page==='goal') ? '' : 'none';
+    document.getElementById('settingsPage').style.display = (page==='settings') ? '' : 'none';
     if(page==='goal') renderGoals();
   });
 });
@@ -1002,7 +1043,7 @@ function renderGoals(){
           <span class="goal-check" data-check="${goal.id}" data-key="${encodeURIComponent(r.key)}" title="タップでチェック（達成扱いにして一覧から消す）"></span>
           <span class="g-title">${esc(r.s.title)} <span class="muted">${r.s.diff}${r.s.const!=null?' / 定数'+Number(r.s.const).toFixed(1):''}</span></span>
           <span class="g-num">${r.cur.toLocaleString()}</span>
-          <span class="g-need">あと +${r.need.toLocaleString()}</span>
+          <span class="g-need">差分 +${r.need.toLocaleString()}</span>
         </div>`).join('') + `</div>`;
     }
 
