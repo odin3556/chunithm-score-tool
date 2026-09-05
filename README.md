@@ -2,6 +2,9 @@
 
 CHUNITHM のベスト枠・新曲枠・候補枠のスコアを読み込んで、次の判定ランクまでの必要スコアとレート上昇量を一覧表示するWebツールです。
 
+- 🔗 **ツールを開く(GitHub Pages)**: https://odin3556.github.io/chunithm-score-tool/
+- 📄 **ソースコード**: このリポジトリ自体です([index.html](index.html)が本体)
+
 ## 使い方
 
 1. `index.html` をブラウザで開く(サンプルデータが最初から表示されます)
