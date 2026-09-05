@@ -292,11 +292,11 @@
         <strong>登録方法①(ドラッグでそのまま登録)</strong>: ブックマークバーを表示した状態で、上のリンクをブックマークバーへ直接ドラッグ&amp;ドロップしてください。<br>
         <strong>登録方法②(クリックしてコピーし、手動で登録)</strong>: 上のリンクをクリックすると、ブックマークレットのコードがクリップボードにコピーされます（クリックしてもページ内では何も実行されません）。ブラウザで新しいブックマークを作成し、URL欄にコピーしたコードを貼り付けて保存してください。<br>
         コピーがうまくいかない場合は <a href="bookmarklet/bookmarklet.txt" target="_blank" rel="noopener noreferrer">bookmarklet.txt</a> の中身を直接コピーしてもOKです。<br><br>
-        <strong>使い方</strong>: <u>普通のWebページ(このページ自体でもOK)を開いた状態で</u>、登録したブックマークをクリックすると、ユーザーネームとAPIトークンの入力を求められます。入力すると <code>chunithm_player_data.json</code> がダウンロードされるので、それを「レーティングチェッカー」タブの「スコアデータを読込」またはドラッグ&amp;ドロップで読み込んでください。<br><br>
+        <strong>使い方</strong>: <u>普通のWebページを開いた状態で</u>、登録したブックマークをクリックすると、ユーザーネームとAPIトークンの入力を求められます。入力すると <code>chunithm_player_data.json</code> がダウンロードされるので、それを「レーティングチェッカー」タブの「スコアデータを読込」またはドラッグ&amp;ドロップで読み込んでください。<strong>特に ChuniSupport自体のページを開いた状態で実行すると確実に動作します。</strong><br><br>
         ソースコードは <a href="bookmarklet/fetch-score-data.js" target="_blank" rel="noopener noreferrer">bookmarklet/fetch-score-data.js</a> にあります。
       </p>
       <p class="goal-hint" style="margin:10px 0 0;background:#fff8e1;border:1px solid #f0e1a8;border-radius:6px;padding:10px 12px;">
-        ⚠️ <strong>「Content Security Policy」「connect-src」といったエラーで失敗する場合</strong>: ブックマークをクリックしたときに開いていたタブが、新しいタブページ・設定画面・ブックマークマネージャーなど<code>chrome://</code>から始まる<strong>ブラウザの内部ページ</strong>だったことが原因です。内部ページは外部サイトへの通信が厳しく制限されています。一度、普通のWebページ(このページ自体で構いません)に移動してから、改めてブックマークをクリックしてください。
+        ⚠️ <strong>「Content Security Policy」「connect-src」といったエラーで失敗する場合</strong>: ブックマークをクリックしたときに開いていたタブが、新しいタブページ・設定画面・ブックマークマネージャーなど<code>chrome://</code>から始まる<strong>ブラウザの内部ページ</strong>だったことが原因です。内部ページは外部サイトへの通信が厳しく制限されています。<strong>ChuniSupportのページを開いた状態</strong>に移動してから、改めてブックマークをクリックしてください（動作確認済みの方法です）。
       </p>
     </div>
 
