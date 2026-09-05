@@ -1,0 +1,7 @@
+.DS_Store
+Thumbs.db
+node_modules/
+
+# 実際のプレイヤーデータ(個人のスコア)はコミットしない
+chunithm_player_data.json
+*.player_data.json
