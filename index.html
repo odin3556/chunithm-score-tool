@@ -274,7 +274,7 @@
     ※ 「レート値」はchunirecが算出した各曲のレートをそのまま表示しています。「加点」は次の判定ランクに到達したときのレート値の上昇量です（レート値 = 定数 + スコアボーナス、で算出）。<br>
     ※ 定数が赤字（末尾なし）はchunirec側で未確定・未調査の推定値です。<br>
     ※ 列見出しをクリックすると並び替えられます（評価グループの区切りは維持されます）。各行の「削除」でその曲を今の枠から外せます。データは消えないので「初期状態にリセット」で戻せます。<br>
-    ※ 画像として保存する際は、maimai版チェッカーと同じ主要列（#・曲名・定数・スコア・判定ランク・次のスコア・次の判定ランク）に絞って出力します。あと・レート値・加点・評価・削除の各列は省きます。定数などが不明な場合は画像では「?」や「-」で表示され、全行がそのままの高さで入るので縦にも横にも途切れません。
+    ※ 画像として保存する際は、主要列（#・曲名・定数・スコア・判定ランク・次のスコア・次の判定ランク・あと）に絞って出力します。レート値・加点・評価・削除の各列は省きます。定数などが不明な場合は画像では「?」や「-」で表示され、全行がそのままの高さで入るので縦にも横にも途切れません。
     <p class="legal">
       サイト上のコンテンツの著作権は、原則として各コンテンツの著作権保持者に帰属します。<br>
       当サイトは非公式のファンサイトであり、株式会社セガをはじめとする関係者・関係会社とは一切関係ありません。<br>
@@ -612,8 +612,8 @@ const COLS = [
   ['スコア',        'スコア',  'num'],
   ['判定ランク',     'ランク',  'rank'],
   ['次のスコア',     '次スコア','num'],
-  ['あと',          'あと',    'num'],
   ['次の判定ランク', '次ランク', 'rank'],
+  ['あと',          'あと',    'num'],
   ['レート値',       'レート値','num'],
   ['加点',          '加点',    'gain'],
   ['評価',          null,      'eval'],
@@ -691,8 +691,8 @@ function render(){
         <td class="num">${fmtInt(r.スコア)}</td>
         <td class="rank">${r.ランク}</td>
         <td class="num">${r.maxed ? '<span class="muted">-</span>' : fmtInt(r.次スコア)}</td>
-        <td class="num">${r.maxed ? '<span class="muted">-</span>' : '+'+fmtInt(r.あと)}</td>
         <td class="rank">${r.maxed ? '<span class="muted">-</span>' : r.次ランク}</td>
+        <td class="num">${r.maxed ? '<span class="muted">-</span>' : '+'+fmtInt(r.あと)}</td>
         <td class="num">${r.レート値 == null ? '-' : r.レート値.toFixed(2)}</td>
         <td class="num gain">${r.加点 == null ? '<span class="muted">-</span>' : '+'+r.加点.toFixed(2)}</td>
         <td class="eval-col">${tier}</td>
@@ -767,10 +767,10 @@ async function captureFitted(){
   // テーブル
   const tableClone = srcTable.cloneNode(true);
 
-  // 画像では maimai版と同じ主要列だけ残す:
-  //   # / 曲名 / 定数 / スコア / 判定ランク / 次のスコア / 次の判定ランク
-  // 省く列: あと / レート値 / 加点 / 評価 / 削除
-  const KEEP_SORT_KEYS = ['定数','スコア','ランク','次スコア','次ランク']; // data-sort を持つ残す列
+  // 画像では主要列だけ残す:
+  //   # / 曲名 / 定数 / スコア / 判定ランク / 次のスコア / 次の判定ランク / あと
+  // 省く列: レート値 / 加点 / 評価 / 削除
+  const KEEP_SORT_KEYS = ['定数','スコア','ランク','次スコア','次ランク','あと']; // data-sort を持つ残す列
   const headCells = Array.from(tableClone.querySelectorAll('thead th'));
   const dropIndexes = [];
   headCells.forEach((th, i)=>{
