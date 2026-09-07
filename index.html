@@ -93,6 +93,8 @@
   .dif{font-size:10px;padding:1px 6px;border-radius:3px;color:#fff;font-weight:700;letter-spacing:.04em;}
   .d-bas{background:#2e9e4f;} .d-adv{background:#e08b00;} .d-exp{background:#d5325c;}
   .d-mas{background:#8b46e0;} .d-ult{background:#111;color:#ffcf4d;} .d-we{background:#000;}
+  .lamptag{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;color:#fff;letter-spacing:.03em;}
+  .lamp-FC{background:#2e9e4f;} .lamp-AJ{background:#e0a800;}
 
   .group-row td{background:#fff6cf;color:#6b5400;font-weight:700;font-size:13.5px;
     padding:7px 9px;border-bottom:1px solid #ffe680;border-top:1px solid #ffe680;border-left:3px solid #e0a800;}
@@ -141,10 +143,15 @@
   .goal-bar-wrap{height:8px;background:#f5eecb;border-radius:5px;overflow:hidden;margin-top:8px;}
   .goal-bar{height:100%;background:linear-gradient(90deg,#ffcc00,#e0a800);border-radius:5px;transition:width .3s;}
   .goal-songs{margin-top:12px;max-height:280px;overflow-y:auto;}
-  .goal-song-row{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f5eecb;font-size:12.5px;}
-  .goal-song-row .g-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .goal-song-row .g-num{font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,Consolas,monospace;color:#8a7f5c;}
-  .goal-song-row .g-need{color:#c23b3b;font-weight:700;font-variant-numeric:tabular-nums;}
+  .goal-song-row{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #f5eecb;font-size:12.5px;}
+  .goal-song-row .g-main{flex:1;min-width:0;}
+  .goal-song-row .g-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+  .goal-song-row .g-meta{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:3px;font-size:11px;color:#8a7f5c;}
+  .goal-song-row .g-meta .g-const{font-variant-numeric:tabular-nums;}
+  .goal-song-row .g-meta .est{color:#c23b3b;}
+  .goal-song-row .g-scores{flex-shrink:0;text-align:right;line-height:1.35;}
+  .goal-song-row .g-num{display:block;font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,Consolas,monospace;color:#8a7f5c;}
+  .goal-song-row .g-need{display:block;color:#c23b3b;font-weight:700;font-variant-numeric:tabular-nums;font-size:11.5px;}
   .goal-check{width:20px;height:20px;border-radius:4px;border:2px solid #cbb96a;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;cursor:pointer;transition:.12s;}
   .goal-check:hover{border-color:#5cae3a;background:#eaf6e2;}
   .goal-check.on{background:#5cae3a;border-color:#5cae3a;}
@@ -185,8 +192,6 @@
   <div class="drop" id="drop">
     JSONファイルをここにドロップ、または上の「スコアデータを読込」から選択<br>
     <span style="font-size:11px;">chunirecマイページから書き出したJSON（records + バージョン情報）に対応。4枠を自動で振り分けます</span>
-    <textarea id="paste" placeholder="JSONを直接貼り付けてもOK"></textarea>
-    <button class="primary" id="pasteBtn" style="margin-top:8px;">貼り付けたJSONを読み込む</button>
   </div>
   <p class="status" id="loadStatus"></p>
 
@@ -280,7 +285,7 @@
         あらかじめ ChuniSupport でアカウント登録とAPIトークンの発行を済ませておいてください。
       </p>
       <p style="text-align:center;margin:16px 0;">
-        <a id="bookmarkletLink" href='javascript:(async()=>{try{const u=prompt("ユーザーネームを入力してください:");if(!u)return;const t=prompt("APIトークンを入力してください:");if(!t)return;const h={Authorization:`Bearer ${t}`};const[r1,r2]=await Promise.all([fetch(`https://api.chunisupport.net/v1/users/${u}`,{headers:h}),fetch(`https://api.chunisupport.net/v1/users/${u}/rating`,{headers:h})]);if(!r1.ok||!r2.ok)throw new Error("通信エラー");const d1=await r1.json(),d2=await r2.json(),D={BASIC:"BAS",ADVANCED:"ADV",EXPERT:"EXP",MASTER:"MAS",ULTIMA:"ULT",WORLDSEND:"WE"},f=r=>({title:r.title||r.song_title||"Unknown",diff:D[r.difficulty]||r.difficulty||r.diff||"",lv:r.level||r.lv||"",score:r.score||0,rank:r.rank||"",const:r.const??r.constant??null,rate:r.rating??r.rate??0}),p=d1.player||{},res={"プロフィール":{"プレイヤーネーム":p.name||d1.name||d1.username||u,"レーティング":(p.rating||d2.rating||0).toFixed(2)},"RATING_RAW":d2.rating||p.rating||0,"ベスト枠":(d2.best||[]).map(f),"新曲枠":(d2.new||[]).map(f),"候補枠(ベスト)":(d2.best_candidate||[]).map(f),"候補枠(新曲)":(d2.new_candidate||[]).map(f)},a=document.createElement(&#39;a&#39;);a.href=URL.createObjectURL(new Blob([JSON.stringify(res,null,1)],{type:&#39;application/json&#39;}));a.download=&#39;chunithm_player_data.json&#39;;a.click();alert("JSONファイルの出力が完了しました！");}catch(e){alert("エラー:"+e.message);}})();'
+        <a id="bookmarkletLink" href='javascript:(async()=>{try{const u=prompt("ユーザーネームを入力してください:");if(!u)return;const t=prompt("APIトークンを入力してください:");if(!t)return;const h={Authorization:`Bearer ${t}`};const[r1,r2]=await Promise.all([fetch(`https://api.chunisupport.net/v1/users/${u}`,{headers:h}),fetch(`https://api.chunisupport.net/v1/users/${u}/rating`,{headers:h})]);if(!r1.ok||!r2.ok)throw new Error("通信エラー");const d1=await r1.json(),d2=await r2.json(),D={BASIC:"BAS",ADVANCED:"ADV",EXPERT:"EXP",MASTER:"MAS",ULTIMA:"ULT",WORLDSEND:"WE"},C={"ALL JUSTICE":"AJ","FULL COMBO":"FC"},f=r=>({title:r.title||r.song_title||"Unknown",diff:D[r.difficulty]||r.difficulty||r.diff||"",lv:r.level||r.lv||"",score:r.score||0,rank:r.rank||"",const:r.const??r.constant??null,rate:r.rating??r.rate??0,fc:C[r.combo_lamp]||r.fc||""}),p=d1.player||{},res={"プロフィール":{"プレイヤーネーム":p.name||d1.name||d1.username||u,"レーティング":(p.rating||d2.rating||0).toFixed(2)},"RATING_RAW":d2.rating||p.rating||0,"ベスト枠":(d2.best||[]).map(f),"新曲枠":(d2.new||[]).map(f),"候補枠(ベスト)":(d2.best_candidate||[]).map(f),"候補枠(新曲)":(d2.new_candidate||[]).map(f)},a=document.createElement(&#39;a&#39;);a.href=URL.createObjectURL(new Blob([JSON.stringify(res,null,1)],{type:&#39;application/json&#39;}));a.download=&#39;chunithm_player_data.json&#39;;a.click();alert("JSONファイルの出力が完了しました！");}catch(e){alert("エラー:"+e.message);}})();'
            style="display:inline-block;padding:10px 22px;border-radius:8px;background:#e0a800;color:#fff;text-decoration:none;font-weight:700;font-size:13.5px;"
            title="ドラッグしてブックマークバーに登録、またはクリックしてコードをコピー">
           🔖 CHUNITHMスコア取得（ドラッグしてブックマーク登録）
@@ -494,6 +499,7 @@ function fromChunirecExport(d){
     const: r.is_const_unknown ? null : (r.const ?? null),
     const_est: !!r.is_const_unknown,
     rate: r.rating,
+    fc: r.is_alljustice ? 'AJ' : (r.is_fullcombo ? 'FC' : ''),
   });
 
   const frames = {
@@ -536,6 +542,7 @@ function normalizeFrames(d){
       score: Number(r.score)||0,
       const: r.is_const_unknown ? null : (r.const ?? null),
       const_est: !!r.is_const_unknown, rate: r.rating,
+      fc: r.is_alljustice ? 'AJ' : (r.is_fullcombo ? 'FC' : ''),
     });
     frames['ベスト枠'] = rated.slice(0, BEST_FRAME_SLOTS).map(toSong);
     frames['候補枠(ベスト)'] = rated.slice(BEST_FRAME_SLOTS, BEST_FRAME_SLOTS + BEST_CAND_SLOTS).map(toSong);
@@ -613,11 +620,6 @@ document.getElementById('loadBtn').addEventListener('click', ()=> document.getEl
 document.getElementById('jsonFile').addEventListener('change', (e)=>{
   const f = e.target.files[0]; if(!f) return;
   const r = new FileReader(); r.onload = (ev)=> loadJson(ev.target.result); r.readAsText(f, 'utf-8');
-});
-document.getElementById('pasteBtn').addEventListener('click', ()=>{
-  const v = document.getElementById('paste').value.trim();
-  if(v) loadJson(v);
-  else { loadStatus.textContent = 'JSONを貼り付けてから押してください。'; loadStatus.className = 'status warn'; }
 });
 document.getElementById('loadSampleBtn').addEventListener('click', loadSample);
 const dropEl = document.getElementById('drop');
@@ -700,7 +702,7 @@ function buildRows(){
     const constant = (r.const === undefined || r.const === null || r.const === '') ? null : Number(r.const);
     return {
       _idx: i,
-      曲名: r.title, diff: (r.diff||'').toUpperCase(), lv: r.lv || '',
+      曲名: r.title, diff: (r.diff||'').toUpperCase(), lv: r.lv || '', fc: r.fc || '',
       定数: constant, 定数推定: !!r.const_est,
       スコア: score, ランク: rank,
       次スコア: t, あと: remain, 次ランク: nextRank, maxed,
@@ -729,6 +731,9 @@ const COLS = [
   ['',              null,      'del']
 ];
 function difTag(diff){ const k = String(diff||'').toLowerCase(); return `<span class="dif d-${k}">${diff}</span>`; }
+// コンボランプ(FC/AJ)のバッジ。生の "FULL COMBO"/"ALL JUSTICE" も短縮コードも受け付ける
+function fcShort(v){ const s = String(v||'').toUpperCase(); if(s==='AJ'||s==='ALL JUSTICE') return 'AJ'; if(s==='FC'||s==='FULL COMBO') return 'FC'; return ''; }
+function lampTag(fc){ const k = fcShort(fc); return k ? `<span class="lamptag lamp-${k}">${k}</span>` : ''; }
 function fmtInt(n){ return n == null ? '-' : n.toLocaleString('ja-JP'); }
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
@@ -795,7 +800,7 @@ function render(){
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="muted">${counter}</td>
-        <td>${esc(r.曲名)} ${difTag(r.diff)}<br><span class="muted" style="font-size:11px;">${r.lv ? 'Lv.'+esc(r.lv) : ''}</span></td>
+        <td>${esc(r.曲名)} ${difTag(r.diff)}${lampTag(r.fc)}<br><span class="muted" style="font-size:11px;">${r.lv ? 'Lv.'+esc(r.lv) : ''}</span></td>
         <td class="num">${constCell}</td>
         <td class="num">${fmtInt(r.スコア)}</td>
         <td class="rank">${r.ランク}</td>
@@ -1179,7 +1184,7 @@ document.getElementById('goalAddBtn').addEventListener('click', ()=>{
     scope,
     cond: { cMin: isNaN(cMin)?null:cMin, cMax: isNaN(cMax)?null:cMax, diff, kind, rank, score },
     target,
-    songs: pool.map(s=>({ title:s.title, diff:s.diff, const:s.const, lv:s.lv })),
+    songs: pool.map(s=>({ title:s.title, diff:s.diff, const:s.const, lv:s.lv, fc:s.fc })),
   };
   GOALS.push(goal);
   saveGoals();
@@ -1237,13 +1242,22 @@ function renderGoals(){
     if(remain === 0){
       songsHtml = `<div class="goal-done-msg">🎉 この目標は全曲達成しました！</div>`;
     }else{
-      songsHtml = `<div class="goal-songs">` + pending.map(r=>`
+      songsHtml = `<div class="goal-songs">` + pending.map(r=>{
+        const constMeta = r.s.const != null
+          ? `<span class="g-const">定数${Number(r.s.const).toFixed(1)}</span>`
+          : `<span class="g-const est">定数?</span>`;
+        return `
         <div class="goal-song-row">
           <span class="goal-check" data-check="${goal.id}" data-key="${encodeURIComponent(r.key)}" title="タップでチェック（達成扱いにして一覧から消す）"></span>
-          <span class="g-title">${esc(r.s.title)} <span class="muted">${r.s.diff}${r.s.const!=null?' / 定数'+Number(r.s.const).toFixed(1):''}</span></span>
-          <span class="g-num">${r.cur.toLocaleString()}</span>
-          <span class="g-need">差分 +${r.need.toLocaleString()}</span>
-        </div>`).join('') + `</div>`;
+          <div class="g-main">
+            <div class="g-title">${esc(r.s.title)}</div>
+            <div class="g-meta">${difTag(r.s.diff)}${lampTag(r.s.fc)}<span>/</span>${constMeta}</div>
+          </div>
+          <div class="g-scores">
+            <span class="g-num">${r.cur.toLocaleString()}</span>
+            <span class="g-need">差分 +${r.need.toLocaleString()}</span>
+          </div>
+        </div>`;}).join('') + `</div>`;
     }
 
     // 手動チェックした曲数の注記＋一括解除ボタン

@@ -36,6 +36,9 @@
       MASTER: "MAS", ULTIMA: "ULT", WORLDSEND: "WE",
     };
 
+    // コンボランプ("FULL COMBO"/"ALL JUSTICE")を FC/AJ の短縮コードに
+    const comboShort = (v) => ({ "ALL JUSTICE": "AJ", "FULL COMBO": "FC" }[v] || "");
+
     const toSong = (r) => ({
       title: r.title || r.song_title || "Unknown",
       diff: DIFF_MAP[r.difficulty] || r.difficulty || r.diff || "",
@@ -44,6 +47,7 @@
       rank: r.rank || "",
       const: r.const ?? r.constant ?? null,
       rate: r.rating ?? r.rate ?? 0,
+      fc: comboShort(r.combo_lamp) || r.fc || "",
     });
 
     // プレイヤー名は /v1/users/:username の player.name に入っている
