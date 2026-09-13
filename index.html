@@ -344,6 +344,25 @@
     </div>
 
     <div class="goal-create">
+      <h2 class="goal-h2">④ 譜面定数データで欠けている定数を補完（reiwa.f5.si）</h2>
+      <p class="goal-hint">
+        ChuniSupport側にまだ定数が登録されていない曲(候補枠などで「定数?」と表示される曲)を、
+        <a href="https://reiwa.f5.si/" target="_blank" rel="noopener noreferrer">音ゲーツール置き場</a>（reiwa.f5.si）が公開している
+        <a href="https://reiwa.f5.si/chunithm_record.json" target="_blank" rel="noopener noreferrer">chunithm_record.json</a>
+        の定数表で補完できます。曲名・難易度が一致する曲だけを対象に、<strong>今すでに定数が入っている項目は上書きせず、空欄の項目だけを埋めます。</strong><br>
+        取得した定数表はこのブラウザに一時キャッシュされ(localStorage・12時間)、キャッシュが新しい間は再取得しません。
+      </p>
+      <p style="margin:8px 0 0;">
+        <button type="button" id="fillConstBtn" class="primary">欠けている定数を補完する</button>
+        <button type="button" id="reloadConstBtn" style="margin-left:6px;">定数表を再取得（キャッシュ更新）</button>
+      </p>
+      <p class="status" id="constDbStatus" style="margin-top:6px;"></p>
+      <p class="goal-hint" style="margin:8px 0 0;">
+        末尾に「?」が付く定数は、reiwa.f5.si側でも未確定・推定値であることを表します。データの正確性・最新性は保証されません。<a href="https://reiwa.f5.si/api.html" target="_blank" rel="noopener noreferrer">reiwa.f5.siの利用上の注意</a>に従い、営利目的での利用や過度な連続取得は行わないでください(取得は自動キャッシュにより通常12時間に1回程度に抑えられます)。
+      </p>
+    </div>
+
+    <div class="goal-create">
       <h2 class="goal-h2">利用にあたっての注意</h2>
       <p class="goal-hint">
         このツールおよびブックマークレットは <a href="https://docs.chunisupport.net/legal/terms/" target="_blank" rel="noopener noreferrer">ChuniSupport利用規約</a> の適用を受けます。特に以下を守ってください。
@@ -353,6 +372,7 @@
         <li><strong>APIトークンを公開・共有しない</strong>: トークンは発行を受けた本人が管理するものです。「② APIアカウント設定」で保存を選ばない限り、入力したトークンはその場でAPI呼び出しに使われるだけでどこにも保存されません。保存を選んだ場合も、このブラウザのタブを閉じるまでの一時保存(sessionStorage)にとどまり、外部やサーバーには送信されません。</li>
         <li><strong>制限の回避禁止</strong>: レート制限・認証・公開設定など、APIドキュメントで定められた技術的制限を回避しないでください。</li>
         <li><strong>問い合わせ先</strong>: 本ツールやAPIに関する問い合わせは、株式会社セガ等の公式関係者ではなく、ChuniSupportの問い合わせ窓口へ行ってください。</li>
+        <li><strong>譜面定数データ(reiwa.f5.si)</strong>: <a href="https://reiwa.f5.si/api.html" target="_blank" rel="noopener noreferrer">利用上の注意</a>に従い、非営利目的の範囲で、過度なリクエストを送らないようご利用ください。データの内容は予告なく変更されることがあり、最新性・正確性は保証されません。</li>
       </ul>
       <p class="goal-hint" style="margin:0;">
         サイト上のコンテンツの著作権は、原則として各コンテンツの著作権保持者に帰属します。当サイトは非公式のファンサイトであり、株式会社セガをはじめとする関係者・関係会社とは一切関係ありません。
@@ -1126,6 +1146,108 @@ const SETTINGS_TOKEN_KEY = 'chunithm_settings_token';
       navigator.clipboard.writeText(code).then(()=> showResult(true)).catch(()=> showResult(false));
     }else{
       showResult(false);
+    }
+  });
+})();
+
+/* ============================================================
+   譜面定数データ（reiwa.f5.si / chunithm_record.json）で
+   定数不明の曲を補完する。ChuniSupport側に既に定数がある曲は
+   上書きしない、あくまで補助的な機能。
+   ============================================================ */
+const CONST_DB_URL = 'https://reiwa.f5.si/chunithm_record.json';
+const CONST_CACHE_KEY = 'chunithm_const_db_v1';
+const CONST_CACHE_TTL = 12 * 60 * 60 * 1000; // 12時間（過度な連続取得を避けるため）
+let CONST_MAP = null;
+
+function constMatchKey(title, diff){ return title + '' + String(diff||'').toUpperCase(); }
+
+async function ensureConstDB(force){
+  if(CONST_MAP && !force) return CONST_MAP;
+  let arr = null;
+  if(!force){
+    try{
+      const c = localStorage.getItem(CONST_CACHE_KEY);
+      if(c){ const o = JSON.parse(c); if(o && o.t && (Date.now() - o.t) < CONST_CACHE_TTL && Array.isArray(o.d)) arr = o.d; }
+    }catch(e){}
+  }
+  if(!arr){
+    const res = await fetch(CONST_DB_URL, { cache: 'no-cache' });
+    if(!res.ok) throw new Error('定数表の取得に失敗しました (HTTP ' + res.status + ')');
+    arr = await res.json();
+    try{ localStorage.setItem(CONST_CACHE_KEY, JSON.stringify({ t: Date.now(), d: arr })); }catch(e){}
+  }
+  CONST_MAP = new Map();
+  arr.forEach(r=>{ CONST_MAP.set(constMatchKey(r.title, r.diff), r); });
+  return CONST_MAP;
+}
+
+// DATA.frames / DATA.allSongs の const が null の曲だけを埋める（既存値は上書きしない）
+function fillMissingConsts(){
+  if(!DATA || !CONST_MAP) return { filled: 0, estimated: 0 };
+  const filledKeys = new Set();
+  const estimatedKeys = new Set();
+  const patch = (s)=>{
+    if(s.const == null){
+      const rec = CONST_MAP.get(constMatchKey(s.title, s.diff));
+      if(rec && rec.const != null){
+        s.const = Number(rec.const);
+        s.const_est = !!rec.unknown;
+        const key = constMatchKey(s.title, s.diff);
+        filledKeys.add(key);
+        if(s.const_est) estimatedKeys.add(key);
+      }
+    }
+  };
+  TAB_KEYS.forEach(k=> (DATA.frames[k] || []).forEach(patch));
+  (DATA.allSongs || []).forEach(patch);
+  return { filled: filledKeys.size, estimated: estimatedKeys.size };
+}
+
+(function initConstDB(){
+  const fillBtn = document.getElementById('fillConstBtn');
+  const reloadBtn = document.getElementById('reloadConstBtn');
+  const status = document.getElementById('constDbStatus');
+  if(!fillBtn) return;
+
+  fillBtn.addEventListener('click', async ()=>{
+    if(!DATA){
+      status.textContent = '先に「レーティングチェッカー」でスコアデータを読み込んでください。';
+      status.className = 'status warn';
+      return;
+    }
+    fillBtn.disabled = true;
+    status.textContent = '定数表を確認しています…';
+    status.className = 'status';
+    try{
+      await ensureConstDB(false);
+      const { filled, estimated } = fillMissingConsts();
+      renderSummary(); render(); persistSessionData();
+      status.textContent = filled > 0
+        ? `${filled}曲の定数を補完しました（うち${estimated}曲は推定値「?」表示になります）。`
+        : '定数が不明な曲はありませんでした（またはreiwa.f5.si側にも定数がありませんでした）。';
+      status.className = 'status ok';
+    }catch(e){
+      status.textContent = '定数表の取得に失敗しました: ' + e.message;
+      status.className = 'status warn';
+    }finally{
+      fillBtn.disabled = false;
+    }
+  });
+
+  reloadBtn.addEventListener('click', async ()=>{
+    reloadBtn.disabled = true;
+    status.textContent = '定数表を再取得しています…';
+    status.className = 'status';
+    try{
+      await ensureConstDB(true);
+      status.textContent = '定数表を再取得しました。「欠けている定数を補完する」で反映できます。';
+      status.className = 'status ok';
+    }catch(e){
+      status.textContent = '定数表の取得に失敗しました: ' + e.message;
+      status.className = 'status warn';
+    }finally{
+      reloadBtn.disabled = false;
     }
   });
 })();
