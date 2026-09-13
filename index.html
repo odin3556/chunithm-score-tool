@@ -285,7 +285,7 @@
         あらかじめ ChuniSupport でアカウント登録とAPIトークンの発行を済ませておいてください。
       </p>
       <p style="text-align:center;margin:16px 0;">
-        <a id="bookmarkletLink" href='javascript:(async()=>{try{const u=prompt("ユーザーネームを入力してください:");if(!u)return;const t=prompt("APIトークンを入力してください:");if(!t)return;const h={Authorization:`Bearer ${t}`};const[r1,r2]=await Promise.all([fetch(`https://api.chunisupport.net/v1/users/${u}`,{headers:h}),fetch(`https://api.chunisupport.net/v1/users/${u}/rating`,{headers:h})]);if(!r1.ok||!r2.ok)throw new Error("通信エラー");const d1=await r1.json(),d2=await r2.json(),D={BASIC:"BAS",ADVANCED:"ADV",EXPERT:"EXP",MASTER:"MAS",ULTIMA:"ULT",WORLDSEND:"WE"},C={"ALL JUSTICE":"AJ","FULL COMBO":"FC"},f=r=>({title:r.title||r.song_title||"Unknown",diff:D[r.difficulty]||r.difficulty||r.diff||"",lv:r.level||r.lv||"",score:r.score||0,rank:r.rank||"",const:r.const??r.constant??null,rate:r.rating??r.rate??0,fc:C[r.combo_lamp]||r.fc||""}),p=d1.player||{},res={"プロフィール":{"プレイヤーネーム":p.name||d1.name||d1.username||u,"レーティング":(p.rating||d2.rating||0).toFixed(2)},"RATING_RAW":d2.rating||p.rating||0,"ベスト枠":(d2.best||[]).map(f),"新曲枠":(d2.new||[]).map(f),"候補枠(ベスト)":(d2.best_candidate||[]).map(f),"候補枠(新曲)":(d2.new_candidate||[]).map(f)},a=document.createElement(&#39;a&#39;);a.href=URL.createObjectURL(new Blob([JSON.stringify(res,null,1)],{type:&#39;application/json&#39;}));a.download=&#39;chunithm_player_data.json&#39;;a.click();alert("JSONファイルの出力が完了しました！");}catch(e){alert("エラー:"+e.message);}})();'
+        <a id="bookmarkletLink" href="javascript:fetch('https://odin3556.github.io/chunithm-score-tool/bookmarklet/fetch-score-data.js?t='+Date.now()).then(r=>r.text()).then(c=>(0,eval)(c)).catch(e=>alert('読み込みエラー:'+e.message));"
            style="display:inline-block;padding:10px 22px;border-radius:8px;background:#e0a800;color:#fff;text-decoration:none;font-weight:700;font-size:13.5px;"
            title="ドラッグしてブックマークバーに登録、またはクリックしてコードをコピー">
           🔖 CHUNITHMスコア取得（ドラッグしてブックマーク登録）
@@ -302,6 +302,9 @@
       </p>
       <p class="goal-hint" style="margin:10px 0 0;background:#fff8e1;border:1px solid #f0e1a8;border-radius:6px;padding:10px 12px;">
         ⚠️ <strong>「Content Security Policy」「connect-src」といったエラーで失敗する場合</strong>: ブックマークをクリックしたときに開いていたタブが、新しいタブページ・設定画面・ブックマークマネージャーなど<code>chrome://</code>から始まる<strong>ブラウザの内部ページ</strong>だったことが原因です。内部ページは外部サイトへの通信が厳しく制限されています。<strong>ChuniSupportのページを開いた状態</strong>に移動してから、改めてブックマークをクリックしてください（動作確認済みの方法です）。
+      </p>
+      <p class="goal-hint" style="margin:10px 0 0;background:#fff8e1;border:1px solid #f0e1a8;border-radius:6px;padding:10px 12px;">
+        ⚠️ <strong>スマホで候補枠(ベスト)/候補枠(新曲)が空になる場合</strong>: 以前に登録したブックマークが古いバージョンだと、スマホのブックマーク編集画面で長いコードが途中で切り捨てられ、後半にある候補枠の取得コードが欠落することがあります。<strong>一度ブックマークを削除して、上のリンクから登録し直してください。</strong>現在のバージョンはごく短いコードになっているため、この問題は起きません。
       </p>
     </div>
 
@@ -1072,16 +1075,11 @@ const SETTINGS_TOKEN_KEY = 'chunithm_settings_token';
   if(!btn) return;
 
   function buildPersonalCode(username, token){
-    const generic = document.getElementById('bookmarkletLink').getAttribute('href');
-    return generic
-      .replace(
-        'const u=prompt("ユーザーネームを入力してください:");if(!u)return;',
-        `const u=${JSON.stringify(username)};`
-      )
-      .replace(
-        'const t=prompt("APIトークンを入力してください:");if(!t)return;',
-        `const t=${JSON.stringify(token)};`
-      );
+    // 読み込み前に window.__CHUNI_USERNAME/__CHUNI_TOKEN をセットしておくと、
+    // fetch-score-data.js 側がプロンプトの代わりにそれを使う
+    return 'javascript:window.__CHUNI_USERNAME=' + JSON.stringify(username)
+      + ';window.__CHUNI_TOKEN=' + JSON.stringify(token)
+      + ';fetch(\'https://odin3556.github.io/chunithm-score-tool/bookmarklet/fetch-score-data.js?t=\'+Date.now()).then(r=>r.text()).then(c=>(0,eval)(c)).catch(e=>alert(\'読み込みエラー:\'+e.message));';
   }
 
   btn.addEventListener('click', ()=>{

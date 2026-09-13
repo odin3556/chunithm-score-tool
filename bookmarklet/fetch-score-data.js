@@ -1,7 +1,15 @@
 /**
  * chunisupport.net の API からスコアデータを取得し、
  * chunithm-rank-checker (index.html) が読み込める形式のJSONとして
- * ダウンロードするブックマークレットの元ソースです。
+ * ダウンロードするブックマークレットの本体です。
+ *
+ * ブックマークレット自体はこのファイルを fetch + eval する短いコードで、
+ * 実際の処理はすべてここに書かれています(長い一行コードだと、スマホの
+ * ブックマーク登録時に途中で切り捨てられて動かなくなることがあるため)。
+ *
+ * 「専用ブックマークレット」経由で実行された場合は、
+ * window.__CHUNI_USERNAME / __CHUNI_TOKEN にあらかじめ値が入っており、
+ * その場合はプロンプトでの入力を省略します。
  *
  * 使い方: bookmarklet/README.md を参照してください。
  *
@@ -9,10 +17,10 @@
  */
 (async () => {
   try {
-    const username = prompt("ユーザーネームを入力してください:");
+    const username = window.__CHUNI_USERNAME || prompt("ユーザーネームを入力してください:");
     if (!username) return;
 
-    const token = prompt("APIトークンを入力してください:");
+    const token = window.__CHUNI_TOKEN || prompt("APIトークンを入力してください:");
     if (!token) return;
 
     const headers = { Authorization: `Bearer ${token}` };
@@ -120,5 +128,9 @@
     alert("JSONファイルの出力が完了しました！");
   } catch (e) {
     alert("エラー:" + e.message);
+  } finally {
+    // 専用ブックマークレットが残した値をページ上に残さない
+    delete window.__CHUNI_USERNAME;
+    delete window.__CHUNI_TOKEN;
   }
 })();
